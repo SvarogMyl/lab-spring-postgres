@@ -1,0 +1,29 @@
+openapi: 3.0.0
+info:
+  title: Laboratorio 1 - Spring Boot + Postgres
+  description: API básica para verificar conexión a base de datos y escalabilidad.
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      summary: Verifica el estado del servidor y la DB.
+      responses:
+        '200':
+          description: Sistema operativo y conectado.
+  /items:
+    post:
+      summary: Crea un item de prueba en la base de datos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre:
+                  type: string
+                descripcion:
+                  type: string
+      responses:
+        '201':
+          description: Item creado exitosamente.

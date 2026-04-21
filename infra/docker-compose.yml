@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: lab-postgres
+    environment:
+      POSTGRES_DB: lab_db
+      POSTGRES_USER: user_admin
+      POSTGRES_PASSWORD: password_123
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    container_name: lab-adminer
+    restart: always
+    ports:
+      - '8080:8080'
+
+volumes:
+  postgres_data:
