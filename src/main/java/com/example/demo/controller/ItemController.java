@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import java.util.Map;
 
 @RestController
@@ -34,7 +36,36 @@ public class ItemController {
     }
 
     @GetMapping("/items")
-    public List<Item> getAllItems() {
-        return itemRepository.findAll();
+    public Page<Item> getAllItems(@PageableDefault(size = 5) Pageable pageable) {
+        return itemRepository.findAll(pageable);
+    }
+
+    @GetMapping("/items/{id}")
+    public ResponseEntity<Item> getItemById(@PathVariable Long id) {
+        return itemRepository.findById(id)
+                .map(item -> new ResponseEntity<>(item, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @PutMapping("/items/{id}")
+    public ResponseEntity<Item> updateItem(@PathVariable Long id, @RequestBody Item itemDetails) {
+        return itemRepository.findById(id)
+                .map(item -> {
+                    item.setNombre(itemDetails.getNombre());
+                    item.setDescripcion(itemDetails.getDescripcion());
+                    Item updatedItem = itemRepository.save(item);
+                    return new ResponseEntity<>(updatedItem, HttpStatus.OK);
+                })
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @DeleteMapping("/items/{id}")
+    public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
+        if (itemRepository.existsById(id)) {
+            itemRepository.deleteById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 }
