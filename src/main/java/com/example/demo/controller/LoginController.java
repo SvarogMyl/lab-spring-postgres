@@ -9,23 +9,36 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 @RestController
 public class LoginController {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @Autowired
     private JwtUtils jwtUtils;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String username = credentials.get("username");
-        String password = credentials.get("password");
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            credentials.get("username"),
+                            credentials.get("password")
+                    )
+            );
 
-        // Simulación de autenticación básica para el laboratorio
-        if ("admin".equals(username) && "admin123".equals(password)) {
-            String token = jwtUtils.generateToken(username);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = jwtUtils.generateToken(authentication);
+            
             return ResponseEntity.ok(Map.of("token", token));
-        } else {
-            return ResponseEntity.status(401).body(Map.of("error", "Credenciales inválidas"));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Credenciales inválidas o usuario no habilitado"));
         }
     }
 }

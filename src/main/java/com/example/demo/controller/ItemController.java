@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -30,17 +31,20 @@ public class ItemController {
     }
 
     @PostMapping("/items")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     public ResponseEntity<Item> createItem(@RequestBody Item item) {
         Item savedItem = itemRepository.save(item);
         return new ResponseEntity<>(savedItem, HttpStatus.CREATED);
     }
 
     @GetMapping("/items")
+    @PreAuthorize("hasAnyRole('VIEWER', 'EDITOR', 'ADMIN')")
     public Page<Item> getAllItems(@PageableDefault(size = 5) Pageable pageable) {
         return itemRepository.findAll(pageable);
     }
 
     @GetMapping("/items/{id}")
+    @PreAuthorize("hasAnyRole('VIEWER', 'EDITOR', 'ADMIN')")
     public ResponseEntity<Item> getItemById(@PathVariable Long id) {
         return itemRepository.findById(id)
                 .map(item -> new ResponseEntity<>(item, HttpStatus.OK))
@@ -48,6 +52,7 @@ public class ItemController {
     }
 
     @PutMapping("/items/{id}")
+    @PreAuthorize("hasAnyRole('EDITOR', 'ADMIN')")
     public ResponseEntity<Item> updateItem(@PathVariable Long id, @RequestBody Item itemDetails) {
         return itemRepository.findById(id)
                 .map(item -> {
@@ -60,6 +65,7 @@ public class ItemController {
     }
 
     @DeleteMapping("/items/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
         if (itemRepository.existsById(id)) {
             itemRepository.deleteById(id);
