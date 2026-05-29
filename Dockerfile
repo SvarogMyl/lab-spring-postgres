@@ -1,17 +1,17 @@
 # Stage 1: Build
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+# Soporta linux/amd64 y linux/arm64 (Oracle Cloud Ampere A1)
+FROM --platform=$BUILDPLATFORM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Run
-FROM eclipse-temurin:21-jre-alpine
+# eclipse-temurin:21-jre-jammy tiene soporte completo para ARM64
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 COPY --from=build /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
 
-# Puerto que expone Render
 EXPOSE 8081
 
-# Comando para ejecutar la app
 ENTRYPOINT ["java", "-jar", "app.jar"]
