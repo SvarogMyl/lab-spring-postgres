@@ -1,31 +1,37 @@
 package com.example.demo.controller;
 
-import com.example.demo.security.JwtUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
 
 import java.util.Map;
 
 @RestController
 public class LoginController {
 
-    @Autowired
-    private JwtUtils jwtUtils;
+    private final RestClient restClient = RestClient.create();
+
+    @Value("${auth.service.url:http://lab-auth-service:8082}")
+    private String authServiceUrl;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String username = credentials.get("username");
-        String password = credentials.get("password");
-
-        // Simulación de autenticación básica para el laboratorio
-        if ("admin".equals(username) && "admin123".equals(password)) {
-            String token = jwtUtils.generateToken(username);
-            return ResponseEntity.ok(Map.of("token", token));
-        } else {
-            return ResponseEntity.status(401).body(Map.of("error", "Credenciales inválidas"));
+        try {
+            Map<?, ?> response = restClient.post()
+                    .uri(authServiceUrl + "/auth/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(credentials)
+                    .retrieve()
+                    .body(Map.class);
+            return ResponseEntity.ok(response);
+        } catch (HttpClientErrorException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(Map.of("error", "Credenciales inválidas"));
         }
     }
 }
