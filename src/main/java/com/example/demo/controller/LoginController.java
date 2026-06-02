@@ -22,10 +22,15 @@ public class LoginController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
         try {
+            // El frontend envía "username"; auth-service espera "email"
+            Map<String, String> authRequest = new java.util.HashMap<>(credentials);
+            if (!authRequest.containsKey("email") && authRequest.containsKey("username")) {
+                authRequest.put("email", authRequest.remove("username"));
+            }
             Map<?, ?> response = restClient.post()
                     .uri(authServiceUrl + "/auth/login")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(credentials)
+                    .body(authRequest)
                     .retrieve()
                     .body(Map.class);
             return ResponseEntity.ok(response);
