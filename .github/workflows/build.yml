@@ -26,9 +26,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Calcular SHA corto
+        id: meta
+        run: echo "sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
       - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           platforms: linux/arm64
           push: true
-          tags: ghcr.io/svarogmyl/lab-spring-postgres:latest
+          tags: |
+            ghcr.io/svarogmyl/lab-spring-postgres:latest
+            ghcr.io/svarogmyl/lab-spring-postgres:sha-${{ steps.meta.outputs.sha }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
